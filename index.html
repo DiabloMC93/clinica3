@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Clínica III 2023</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+            text-align: left;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .option-btn:hover {
+            background: rgba(51, 65, 85, 0.8);
+            transform: translateX(5px);
+        }
+        .correct {
+            background-color: #059669 !important;
+            color: white !important;
+            border-color: #10b981 !important;
+        }
+        .incorrect {
+            background-color: #dc2626 !important;
+            color: white !important;
+            border-color: #ef4444 !important;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 md:p-8">
+
+    <div class="max-w-3xl w-full">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-sky-400 mb-2">Parcial y Final Clínica III 2023</h1>
+            <p class="text-slate-400 italic text-sm">Shock, Traumatología y Heridas</p>
+        </header>
+
+        <!-- Stats Bar -->
+        <div class="grid grid-cols-3 gap-4 mb-6 sticky top-4 z-10">
+            <div class="glass-card p-4 rounded-xl text-center shadow-lg">
+                <span class="block text-xs uppercase text-slate-400">Pregunta</span>
+                <span id="q-counter" class="text-xl font-bold">1/25</span>
+            </div>
+            <div class="glass-card p-4 rounded-xl text-center border-l-4 border-green-500 shadow-lg">
+                <span class="block text-xs uppercase text-slate-400">Aciertos</span>
+                <span id="correct-counter" class="text-xl font-bold text-green-400">0</span>
+            </div>
+            <div class="glass-card p-4 rounded-xl text-center border-l-4 border-red-500 shadow-lg">
+                <span class="block text-xs uppercase text-slate-400">Errores</span>
+                <span id="incorrect-counter" class="text-xl font-bold text-red-400">0</span>
+            </div>
+        </div>
+
+        <!-- Question Container -->
+        <div id="game-container" class="glass-card p-6 md:p-8 rounded-2xl shadow-2xl relative overflow-hidden">
+            <div id="question-text" class="text-xl font-medium mb-8 leading-relaxed">
+                Cargando cuestionario...
+            </div>
+            <div id="options-container" class="space-y-3">
+                <!-- Options injected here -->
+            </div>
+            
+            <button id="next-btn" class="hidden mt-8 w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-6 rounded-xl transition-colors shadow-lg">
+                Siguiente Pregunta
+            </button>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="result-screen" class="hidden glass-card p-8 rounded-2xl shadow-2xl text-center">
+            <h2 class="text-3xl font-bold mb-4">Examen Finalizado</h2>
+            <div class="text-6xl font-bold text-sky-400 mb-6" id="final-score">0%</div>
+            <p id="final-stats" class="text-lg text-slate-300 mb-8"></p>
+            <button onclick="location.reload()" class="bg-sky-600 hover:bg-sky-500 text-white font-bold py-3 px-8 rounded-xl transition-all shadow-lg">
+                Repetir Examen
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questions = [
+            {
+                q: "1. Los cuidados de enfermería a pacientes con infección van destinados a:",
+                options: ["Destruir el crecimiento de microorganismos", "Frenar el crecimiento de microorganismos", "Mejorar su bienestar psíquico", "a y b son correctas"],
+                correct: 3
+            },
+            {
+                q: "2. De los siguientes enunciados ¿cuál se aproxima más a la definición de shock?",
+                options: [
+                    "Carencia generalizada de perfusión de los tejidos por hematíes oxigenados que da lugar a un metabolismo aerobio.",
+                    "Descenso de la tensión arterial, un pulso rápido, una piel fría o húmeda.",
+                    "Estado generado por la pérdida masiva de sangre.",
+                    "Carencia generalizada de perfusión de los tejidos que da lugar a un metabolismo anaerobio y a una disminución de la producción de energía."
+                ],
+                correct: 3
+            },
+            {
+                q: "3. El edema está provocado por:",
+                options: [
+                    "Aumento del componente extravascular por aumento de líquido intracelular.",
+                    "Disminución del componente extravascular por aumento de líquido extracelular.",
+                    "Aumento del componente intersticial por aumento del líquido extracelular.",
+                    "Aumento del componente intersticial por disminución del líquido intracelular."
+                ],
+                correct: 2
+            },
+            {
+                q: "4. ¿Cuál sería la primera actuación de enfermería ante una hematemesis masiva-activa?",
+                options: ["Tomar constantes vitales", "Administración de oxígeno", "Canalización de una vía venosa", "Taponamiento de la herida"],
+                correct: 2
+            },
+            {
+                q: "5. Los tipos de shock son:",
+                options: [
+                    "Hipovolémico, distributivo y cardiogénico",
+                    "Cardiogénico, séptico e hipovolémico",
+                    "Neurógeno, distributivo y psicógeno",
+                    "Hipovolémico, distributivo, obstructivo y cardiogénico"
+                ],
+                correct: 3
+            },
+            {
+                q: "6. Cuál de estas patologías NO es susceptible de Hemorragia Digestiva Alta:",
+                options: ["Varices esofágicas", "Angiodisplasia cólica", "Angiodisplasia gástrica", "Fístula aortoentérica"],
+                correct: 1
+            },
+            {
+                q: "7. ¿Cuál de los siguientes enunciados define de manera más precisa la definición de shock?",
+                options: ["Hipotensión arterial", "Piel fría", "Oligoanuria", "Hipoperfusión hística"],
+                correct: 3
+            },
+            {
+                q: "8. La hematoquecia es una manifestación más habitual de:",
+                options: [
+                    "Hemorragia digestiva alta por ulcus péptico",
+                    "Hemorragia digestiva baja por varices esofágicas",
+                    "Hemorragia digestiva baja",
+                    "Hemorragia digestiva alta por lesiones agudas de la mucosa gástrica"
+                ],
+                correct: 2
+            },
+            {
+                q: "9. Las precauciones universales son unas medidas que deben ser observadas:",
+                options: [
+                    "Sólo ante sangre de una persona con SIDA",
+                    "Ante un contacto con sangre o ciertos fluidos de cualquier persona",
+                    "Sólo ante personas de las que no conocemos su historia clínica",
+                    "Únicamente en caso de accidente profesional"
+                ],
+                correct: 1
+            },
+            {
+                q: "10. Cuando se administra una vacuna se produce inmunidad:",
+                options: ["Artificial pasiva", "Natural activa", "Artificial activa", "Natural pasiva"],
+                correct: 2
+            },
+            {
+                q: "11. Accidente de tráfico: PAS 70 mmHg, FC 45 lat/min, piel de extremidades caliente. Causa más probable de shock:",
+                options: ["Shock hipovolémico", "Shock cardiógeno", "Shock neurogénico", "Shock séptico"],
+                correct: 2
+            },
+            {
+                q: "12. Qué tipo de shock puede producir la alergia al látex:",
+                options: ["Distributivo (Anafiláctico)", "Hipovolémico", "Cardiogénico", "Séptico"],
+                correct: 0
+            },
+            {
+                q: "13. Está contraindicada la sutura por primera intención en heridas… Señale la INCORRECTA:",
+                options: [
+                    "Con más de 6 horas de evolución, sucias y con pérdidas de sustancia",
+                    "Penetrantes en tórax y abdomen",
+                    "Con riesgo de afectar tendones o nervios",
+                    "Todas son correctas"
+                ],
+                correct: 2
+            },
+            {
+                q: "14. Signos y síntomas a tener en cuenta en una herida de 24 horas después de realizarle una sutura:",
+                options: ["Dolor y edema", "Rubor y calor", "Drenaje", "Las respuestas a y b son correctas"],
+                correct: 3
+            },
+            {
+                q: "15. Si una herida está infectada, la actuación para con ella será… Señale la INCORRECTA:",
+                options: [
+                    "Limpieza, desinfección y sutura",
+                    "Limpieza, desinfección y cierre por 2º intención",
+                    "Limpieza, desinfección y cierre por 3º intención",
+                    "Las respuesta b y c son correctas"
+                ],
+                correct: 0
+            },
+            {
+                q: "16. El dolor que se exacerba con la actividad puede ser debido a:",
+                options: ["Infección ósea", "Artritis", "Luxación de la articulación", "Distensión de la articulación"],
+                correct: 1
+            },
+            {
+                q: "17. La inflamación de la articulación… Señale la respuesta correcta:",
+                options: ["Forma tejido queloide", "No origina anquilosis", "Provoca deformidad", "Todas las respuestas son correctas"],
+                correct: 2
+            },
+            {
+                q: "18. Dosis máxima de mepivacaína al 2% para una persona de 40 kg (Máx 7mg/kg):",
+                options: ["18 ml / 360 mg", "27 ml / 420 mg", "14 ml / 280 mg (7mg * 40kg = 280mg)", "21 ml / 420 mg"],
+                correct: 2
+            },
+            {
+                q: "19. En el tratamiento del esguince, la aplicación de calor debe hacerse:",
+                options: [
+                    "Alternando con compresas frías",
+                    "Primero se aplica calor y posteriormente frío",
+                    "Pasadas 36-48 horas del traumatismo",
+                    "Las primeras 12 horas frío y posteriormente calor"
+                ],
+                correct: 2
+            },
+            {
+                q: "20. En un esguince de tobillo… señale la INCORRECTA:",
+                options: [
+                    "La fuerza ejercida sobrepasa el límite funcional perdiendo las superficies articulares su relación normal",
+                    "El bostezo articular se provoca por desinserción de la articulación",
+                    "Se produce hinchazón rápida por extravasación de sangre",
+                    "Todas las respuestas son incorrectas"
+                ],
+                correct: 0
+            },
+            {
+                q: "21. El síndrome compartimental se produce por… Señale la INCORRECTA:",
+                options: [
+                    "Disminución del continente del compartimento",
+                    "Aumento del contenido del compartimento",
+                    "Sutura a tensión de piel y subcutáneo",
+                    "Vendaje o yeso compresivo"
+                ],
+                correct: 2
+            },
+            {
+                q: "22. Existirá afectación del nervio cubital si…",
+                options: [
+                    "No puede mover el dedo pulgar",
+                    "No puede unir 1º y 5º dedo (aducción/oposición)",
+                    "No flexiona los dedos",
+                    "No extiende los dedos"
+                ],
+                correct: 1
+            },
+            {
+                q: "23. Existirá afectación del nervio peroneo si…",
+                options: [
+                    "No existe flexión palmar de los dedos",
+                    "No existe flexión dorsal de los dedos",
+                    "No existe flexión dorsal del pie (pie caído)",
+                    "Todas la respuestas son correctas"
+                ],
+                correct: 2
+            },
+            {
+                q: "24. En la fase de consolidación de las fracturas… señale la INCORRECTA:",
+                options: [
+                    "La infección retrasa la consolidación",
+                    "La proliferación celular origina red de fibrina que da tejido fibroso",
+                    "La osificación comienza con el acúmulo de los osteoblastos",
+                    "La formación del callo de fractura hace que los osteoblastos se acumulen formando una zona fibrosa"
+                ],
+                correct: 3
+            },
+            {
+                q: "25. Criterio de laparotomía inmediata en herida abdominal por arma blanca… señale la INCORRECTA:",
+                options: ["Neumoperitoneo", "TA diastólica menor de 90 mmHg tras 3 litros de suero", "No ruidos intestinales con defensa a la palpación", "Hematoquecia"],
+                correct: 1
+            }
+        ];
+
+        let currentQuestion = 0;
+        let score = 0;
+        let errors = 0;
+        let answered = false;
+
+        function loadQuestion() {
+            answered = false;
+            document.getElementById('next-btn').classList.add('hidden');
+            const q = questions[currentQuestion];
+            
+            document.getElementById('q-counter').innerText = `${currentQuestion + 1}/${questions.length}`;
+            document.getElementById('question-text').innerText = q.q;
+            
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            q.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full p-4 rounded-xl glass-card text-left text-slate-200 flex items-start';
+                btn.innerHTML = `
+                    <span class="bg-slate-800 border border-slate-600 w-6 h-6 rounded-full flex-shrink-0 text-center text-xs pt-0.5 mr-3">${String.fromCharCode(97 + index)}</span>
+                    <span>${opt}</span>
+                `;
+                btn.onclick = () => checkAnswer(index, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(idx, btn) {
+            if (answered) return;
+            answered = true;
+            const q = questions[currentQuestion];
+            const btns = document.getElementById('options-container').children;
+
+            if (idx === q.correct) {
+                score++;
+                document.getElementById('correct-counter').innerText = score;
+                btn.classList.add('correct');
+            } else {
+                errors++;
+                document.getElementById('incorrect-counter').innerText = errors;
+                btn.classList.add('incorrect');
+                btns[q.correct].classList.add('correct');
+            }
+
+            document.getElementById('next-btn').classList.remove('hidden');
+        }
+
+        document.getElementById('next-btn').onclick = () => {
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                loadQuestion();
+            } else {
+                showFinalResults();
+            }
+        };
+
+        function showFinalResults() {
+            document.getElementById('game-container').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            const pct = Math.round((score / questions.length) * 100);
+            document.getElementById('final-score').innerText = `${pct}%`;
+            document.getElementById('final-stats').innerText = `Has acertado ${score} preguntas y fallado ${errors}.`;
+        }
+
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
